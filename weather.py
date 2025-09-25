@@ -30,7 +30,6 @@ def k_convert(temp):
     return temp * 1.8 - 459.67
 
 def menu_two(loc):
-    print(f"here we are: {loc}")
     weather_query_params['lat'] = loc['lat']
     weather_query_params['lon'] = loc['lon']
     new_query = urlencode(weather_query_params, doseq=True)
@@ -76,10 +75,15 @@ def menu_one():
             count = 0
 
             for location in data:
-                print(f"{count+1}. {location['name']}, {location['state']}, Lat: {location['lat']}, Lon: {location['lon']}")
-                count+=1
-            state = int(input("what state? "))
-            real_location = data[state - 1]
+                state = location.get('state', '')
+                if state:
+                    print(f"{count+1}. {location['name']}, {state}, Lat: {location['lat']}, Lon: {location['lon']}")
+                    count+=1
+            if state:
+                state = int(input("what state? "))
+                real_location = data[state - 1]
+            else:
+                real_location = data[0]
 
             return(real_location)
 
@@ -100,9 +104,12 @@ while True:
     menu = input("1. Find city \n2. Get Forecast\n" )
     if menu == '1':
         loc = menu_one()
-        print(loc['lat'])
+        print(loc['name'])
     if menu == '2':
-        print(menu_two(loc))
+        if loc:
+            print(menu_two(loc))
+        else: 
+            print("oops!")
 
 
 
