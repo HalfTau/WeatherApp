@@ -20,6 +20,7 @@ def menu_one():
     query_params['q'] = [city]
     new_query = urlencode(query_params, doseq=True)
     new_url = urlunparse(parsed_url._replace(query=new_query))
+
     try:
         # Make a GET request
         response = requests.get(new_url)
@@ -28,11 +29,16 @@ def menu_one():
         if response.status_code == 200:
             # Parse the JSON response
             data = response.json()
-            count = 1
-            print("What State? ")
+            count = 0
+
             for location in data:
-                print(f"{count}. State: {location['state']}, Lat: {location['lat']}, Lon: {location['lon']}")
+                print(f"{count+1}. {location['name']}, {location['state']}, Lat: {location['lat']}, Lon: {location['lon']}")
                 count+=1
+            state = int(input("what state? "))
+            real_location = data[state - 1]
+            print(real_location['state'])
+
+
         else:
             print(f"Error: {response.status_code} - {response.text}")
 
