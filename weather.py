@@ -7,16 +7,6 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 load_dotenv()
 openweather_api_key =  os.getenv("OPEN_WEATHER_API")
 
-geo_url = 'http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=5&appid={openweather_api_key}'
-geo_parsed_url = urlparse(geo_url)
-geo_query_params = parse_qs(geo_parsed_url.query)
-geo_query_params['appid'] = [openweather_api_key]
-
-weather_url = 'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API key}'
-weather_parsed_url = urlparse(weather_url)
-weather_query_params = parse_qs(weather_parsed_url.query)
-weather_query_params['appid'] = [openweather_api_key]
-
 #googled and taken from microsoft AI
 def clear_screen():
     # For Windows
@@ -26,43 +16,17 @@ def clear_screen():
     else:
         _ = os.system('clear')
 
-def k_convert(temp):
-    return temp * 1.8 - 459.67
+def build_geo_url(city): 
+    return f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=5&appid={openweather_api_key}"
 
-def menu_two(loc):
-    weather_query_params['lat'] = loc['lat']
-    weather_query_params['lon'] = loc['lon']
-    new_query = urlencode(weather_query_params, doseq=True)
-    new_url = urlunparse(weather_parsed_url._replace(query=new_query))
-    try:
-        # Make a GET request
-        response = requests.get(new_url)
-        if response.status_code == 200:
-            # Parse the JSON response
-            data = response.json()
-
-            #extracting information
-            city = data["name"]
-            country = data["sys"]["country"]
-            weather_main = data["weather"][0]["main"]
-            weather_description = data["weather"][0]["description"]
-            temperature = data["main"]["temp"]
-            feels_like = data["main"]["feels_like"]
-            humidity = data["main"]["humidity"]
-            temperature_convert = k_convert(temperature)
-            return(temperature_convert)
-
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred during the request: {e}")
+def build_weather_url(lat, lon):
+    return f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={openweather_api_key}&units=imperial"
 
 #collect the user's city 
 def menu_one():
     clear_screen()
-    city = input('Enter your city')
-    #put entered city into API URL
-    geo_query_params['q'] = [city]
-    new_query = urlencode(geo_query_params, doseq=True)
-    new_url = urlunparse(geo_parsed_url._replace(query=new_query))
+    city = input('Enter your city: ')
+    new_url = build_geo_url(city)
 
     try:
         # Make a GET request
@@ -73,19 +37,21 @@ def menu_one():
             # Parse the JSON response
             data = response.json()
             count = 0
-
-            for location in data:
-                state = location.get('state', '')
+            if data:
+                for location in data:
+                    state = location.get('state', '')
+                    if state:
+                        print(f"{count+1}. {location['name']}, {state}, Lat: {location['lat']}, Lon: {location['lon']}")
+                        count+=1
                 if state:
-                    print(f"{count+1}. {location['name']}, {state}, Lat: {location['lat']}, Lon: {location['lon']}")
-                    count+=1
-            if state:
-                state = int(input("what state? "))
-                real_location = data[state - 1]
-            else:
-                real_location = data[0]
+                    state = int(input("what state? "))
+                    real_location = data[state - 1]
+                else:
+                    real_location = data[0]
 
-            return(real_location)
+                return(real_location)
+            else:
+                print("No city by that name found")
 
 
         else:
@@ -95,22 +61,44 @@ def menu_one():
         print(f"An error occurred during the request: {e}")
 
 
+def menu_two(loc):
+    new_url = build_weather_url(loc['lat'], loc['lon'])
+    try:
+        # Make a GET request
+        response = requests.get(new_url)
+        if response.status_code == 200:
+            # Parse the JSON response
+            data = response.json()
 
-loc = []
+            #extracting information
+            return {
+                "city": data.get("name", "Unknown"),
+                "country": data["sys"].get("country", "Unknown"),
+                "temperature_f": round(data["main"]["temp"]),
+                "feels_like_f": round(data["main"]["feels_like"]),
+                "humidity": data["main"].get("humidity"),
+                "description": data["weather"][0].get("description", "No description")
+            }
+
+            #return(temperature_convert)
+
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred during the request: {e}")
+
+loc = None
 #main menu loop
 while True:
-    
     print("Menu\nChoose one")
     menu = input("1. Find city \n2. Get Forecast\n" )
     if menu == '1':
+        clear_screen()
         loc = menu_one()
-        print(loc['name'])
     if menu == '2':
         if loc:
-            print(menu_two(loc))
+            results = menu_two(loc)
+            print(f"temp: {results['temperature_f']} \ndescription: {results['description']}")
         else: 
-            print("oops!")
-
+            print("oops! enter a city first.")
 
 
 
