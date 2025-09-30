@@ -6,6 +6,19 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 load_dotenv()
 openweather_api_key =  os.getenv("OPEN_WEATHER_API")
 
+icons = {
+    "01d": "☀️ Clear sky (day)",
+    "01n": "🌙 Clear sky (night)",
+    "02d": "⛅ Few clouds (day)",
+    "02n": "☁️ Few clouds (night)",
+    "03d": "☁️ Scattered clouds",
+    "04d": "☁️ Overcast",
+    "09d": "🌧️ Shower rain",
+    "10d": "🌦️ Rain",
+    "11d": "⛈️ Thunderstorm",
+    "13d": "❄️ Snow",
+    "50d": "🌫️ Mist"
+}
 #googled and taken from microsoft AI
 def clear_screen():
     # For Windows
@@ -70,7 +83,8 @@ def menu_two(loc):
                 "temperature_f": round(data["main"]["temp"]),
                 "feels_like_f": round(data["main"]["feels_like"]),
                 "humidity": data["main"].get("humidity"),
-                "description": data["weather"][0].get("description", "No description")
+                "description": data["weather"][0].get("description", "No description"),
+                "icon": data["weather"][0].get("icon", "No icon")
             }
 
             #return(temperature_convert)
@@ -90,9 +104,11 @@ while True:
         clear_screen()
         if loc:
             results = menu_two(loc)
+            icon_code = results['icon']
             #print(f"current weather for {results['city']}")
             print(f"Weather for: {results['city']}, {results['state']}")
             print(f"temp: {results['temperature_f']} \ndescription: {results['description']}")
+            print(icons.get(icon_code, f"[{icon_code}]"))
         else: 
             print("oops! enter a city first.")
 
