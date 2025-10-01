@@ -78,7 +78,7 @@ def menu_two(loc):
             #extracting information
             return {
                 "state": loc.get("state", "Unknown"),
-                "city": data.get("name", "Unknown"),
+                "city": loc.get("name", "Unknown"),
                 "country": data["sys"].get("country", "Unknown"),
                 "temperature_f": round(data["main"]["temp"]),
                 "feels_like_f": round(data["main"]["feels_like"]),
@@ -92,11 +92,14 @@ def menu_two(loc):
     except requests.exceptions.RequestException as e:
         print(f"An error occurred during the request: {e}")
 
+def menu_three(loc):
+    return "you're here"
+
 loc = None
 #main menu loop
 while True:
     print("Menu\nChoose one")
-    menu = input("1. Find city \n2. Get Forecast\n" )
+    menu = input("1. Find city \n2. Get Current Weather\n3. Get the forecast\n" )
     if menu == '1':
         clear_screen()
         loc = menu_one()     
@@ -111,6 +114,10 @@ while True:
             print(icons.get(icon_code, f"[{icon_code}]"))
         else: 
             print("oops! enter a city first.")
+    if menu == '3':
+        clear_screen()
+        results = menu_three(loc)
+        print(results)
 
     
 
